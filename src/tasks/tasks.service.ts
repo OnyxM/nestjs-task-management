@@ -5,6 +5,7 @@ import {TaskRepository} from "./task.repository";
 import {Task} from "./task.entity";
 import {TaskStatus} from "./task-status.enum";
 import {GetTasksFilterDto} from "./dto/get-tasks-filter.dto";
+import {User} from "../auth/user.entity";
 
 @Injectable()
 export class TasksService {
@@ -13,8 +14,8 @@ export class TasksService {
         private taskRepository: TaskRepository,
     ) {}
 
-    async getTaskById(id: number): Promise<Task> {
-        const found = await this.taskRepository.findOne(id);
+    async getTaskById(id: number, user: User): Promise<Task> {
+        const found = await this.taskRepository.findOne({where: { id, userId: user.id }});
 
         if (!found) {
             throw new NotFoundException(`Task with ID "${id}" not found.`);
@@ -23,8 +24,11 @@ export class TasksService {
         return found;
     }
 
-    async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
-        return this.taskRepository.createTask(createTaskDto);
+    async createTask(
+        createTaskDto: CreateTaskDto,
+        user: User,
+    ): Promise<Task> {
+        return this.taskRepository.createTask(createTaskDto, user);
     }
 
     async deleteTaskById(id: number): Promise<void> {
@@ -35,15 +39,18 @@ export class TasksService {
         }
     }
 
-    async updateTaskStatus(id: number, status: TaskStatus): Promise<Task> {
-        const task = await this.getTaskById(id);
-        task.status = status;
-        await task.save();
+    // async updateTaskStatus(id: number, status: TaskStatus): Promise<Task> {
+    //     const task = await this.getTaskById(id);
+    //     task.status = status;
+    //     await task.save();
+    //
+    //     return task;
+    // }
 
-        return task;
-    }
-
-    async getTasks(filterDto: GetTasksFilterDto): Promise<Task[]> {
-        return this.taskRepository.getTaks(filterDto);
+    async getTasks(
+        filterDto: GetTasksFilterDto,
+        user: User,
+        ): Promise<Task[]> {
+        return this.taskRepository.getTaks(filterDto, user);
     }
 }
